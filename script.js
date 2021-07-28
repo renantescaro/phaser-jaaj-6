@@ -41,7 +41,7 @@ function preload(){
     this.load.image('plataformaPequena', 'assets/plataformaPequena.png')
 
     // personagem principal
-    this.load.spritesheet('personagem', 'assets/peixe.png', { frameWidth: 250, frameHeight: 50 })
+    this.load.spritesheet('personagem', 'assets/peixe.png', { frameWidth: 220, frameHeight: 98 })
 }
 
 function create(){
