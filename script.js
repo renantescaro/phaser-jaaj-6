@@ -1,4 +1,5 @@
-var teclaEsc
+var estado = 'direita'
+var teclaAtaque
 var teclaPulo
 var game
 var map
@@ -41,7 +42,7 @@ function preload(){
     this.load.image('plataformaPequena', 'assets/plataformaPequena.png')
 
     // personagem principal
-    this.load.spritesheet('personagem', 'assets/peixe.png', { frameWidth: 220, frameHeight: 98 })
+    this.load.spritesheet('personagem', 'assets/peixe.png', { frameWidth: 460, frameHeight: 170 })
 }
 
 function create(){
@@ -90,28 +91,48 @@ function create(){
 
     // Animações
     this.anims.create({
+        key: 'atacarDireita',
+        frames: [ { key: 'personagem', frame: 8 } ],
+        frameRate: 8,
+        repeat: 1
+    })
+
+    this.anims.create({
+        key: 'atacarEsquerda',
+        frames: [ { key: 'personagem', frame: 8 } ],
+        frameRate: 8,
+        repeat: 1
+    })
+
+    this.anims.create({
         key: 'left',
-        frames: this.anims.generateFrameNumbers('personagem', { start: -1, end: 3 }),
+        frames: this.anims.generateFrameNumbers('personagem', { start: 0, end: 2 }),
         frameRate: 10,
         repeat: -1
     })
     
     this.anims.create({
         key: 'right',
-        frames: this.anims.generateFrameNumbers('personagem', { start: 5, end: 8 }),
+        frames: this.anims.generateFrameNumbers('personagem', { start: 4, end: 6 }),
         frameRate: 10,
         repeat: -1
     })
 
     this.anims.create({
-        key: 'turn',
-        frames: [ { key: 'personagem', frame: 4 } ],
+        key: 'paradoEsquerda',
+        frames: [ { key: 'personagem', frame: 7 } ],
         frameRate: 20
     })
 
-    teclaEsc  = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC)
-    teclaPulo = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
-    cursors   = this.input.keyboard.createCursorKeys()
+    this.anims.create({
+        key: 'paradoDireita',
+        frames: [ { key: 'personagem', frame: 3 } ],
+        frameRate: 20
+    })
+
+    teclaAtaque  = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q)
+    teclaPulo    = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
+    cursors      = this.input.keyboard.createCursorKeys()
 
     // grupo de 30 power ups, a cada 205 px, a partir de 1000 px do inicio de x
     stars = this.physics.add.group({
@@ -138,21 +159,36 @@ function create(){
 function update(){
     scoreText.x = personagem.x
 
-    if(Phaser.Input.Keyboard.JustDown(teclaEsc)){
-        configuracoes()
-    }
-
     if (cursors.left.isDown){
+        estado = 'esquerda'
         andarEsquerda()
     }else if (cursors.right.isDown){
+        estado = 'direita'
         andarDireita()
     }else{
-        parar()
+        if(estado=='esquerda'){
+            estado = 'paradoEsquerda'
+            parar()
+        }else if(estado=='direita'){
+            estado = 'paradoDireita'
+            parar()
+        }
     }
     
     if(Phaser.Input.Keyboard.JustDown(teclaPulo)){
+        estado = 'pulo'
         pular()
     }
+    
+    if(Phaser.Input.Keyboard.JustDown(teclaAtaque)){
+        estado = 'ataque'
+        atacar()
+    }
+}
+
+function atacar(){
+    personagem.anims.play('atacarDireita', true)
+    personagem.anims.play('atacarEsquerda', true)
 }
 
 function andarEsquerda(){
@@ -167,7 +203,11 @@ function andarDireita(){
 
 function parar(){
     personagem.setVelocityX(0)
-	personagem.anims.play('turn')
+    if(estado == 'paradoEsquerda'){
+        personagem.anims.play('paradoEsquerda')
+    }else{
+        personagem.anims.play('paradoDireita')
+    }
 }
 
 function pular(){
@@ -188,7 +228,7 @@ function collectStar (personagem, star){
 }
 
 function encostarInimigo(personagem, inimigo){
-    vida -= 1
+    vida -= 0.5
     scoreText.setText('Pontos: ' + score + ' Vida: ' + vida)
 
     if(vida <= 0){
